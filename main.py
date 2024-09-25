@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from transformers import pipeline, CLIPProcessor, CLIPModel
 from annoy import AnnoyIndex
+from tqdm.auto import tqdm
 
 # Load the CLIP model
 model_name = "openai/clip-vit-base-patch32"
@@ -95,11 +96,6 @@ def detect_stamps(image: Image.Image) -> List[Tuple[Image.Image, DetectionResult
     return cropped_images
 
 
-def extract_stamp_embedding(image: Image.Image) -> np.array:
-
-    return
-
-
 def find_similar_stamps(
     image: Image.Image, num_matches: int = 5
 ) -> List[Dict[str, Any]]:
@@ -121,15 +117,43 @@ def find_similar_stamps(
     return similar_images
 
 
-def identify_stamps(image_path: str) -> List[DetectionResult]:
+def identify_stamps(image_path: str, dataset_dir: str) -> None:
     """
-    Identify postage stamps in an image.
+    Identify postage stamps in an image and visualize the results.
     """
     image = Image.open(image_path).convert("RGB")
     detected_stamps = detect_stamps(image)
 
-    for cropped_image, _ in detected_stamps:
+    for i, (cropped_image, _) in tqdm(enumerate(detected_stamps)):
         similar_images = find_similar_stamps(cropped_image)
-        # plot in a grid pattern with rows as image followed by its similar images with captions as distance
 
-        # "path": f"{dataset_dir}/{idx}.jpg",
+        # Create a new figure for each detected stamp
+        fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+        fig.suptitle(f"Detected Stamp {i + 1}")
+
+        # Plot the detected stamp
+        axes[0, 0].imshow(cropped_image)
+        axes[0, 0].set_title("Detected Stamp")
+        axes[0, 0].axis("off")
+
+        # Plot similar stamps
+        for j, similar in enumerate(similar_images):
+            similar_image_path = f"{dataset_dir}/{similar['idx']}.jpg"
+            similar_image = Image.open(similar_image_path).convert("RGB")
+
+            row = (j + 1) // 3
+            col = (j + 1) % 3
+
+            axes[row, col].imshow(similar_image)
+            axes[row, col].set_title(f"Distance: {similar['distance']:.4f}")
+            axes[row, col].axis("off")
+
+        plt.tight_layout()
+        plt.show()
+
+
+# Example usage
+if __name__ == "__main__":
+    image_path = "./data/album/album1.png"
+    dataset_dir = "./data/dataset"
+    identify_stamps(image_path, dataset_dir)
