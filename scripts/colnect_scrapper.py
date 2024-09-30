@@ -1,5 +1,6 @@
 import time
 import itertools
+import json
 
 import pandas as pd
 
@@ -7,10 +8,10 @@ from selenium import webdriver
 from bs4 import BeautifulSoup
 
 cookies = {
-    "cnv2sess": "kb2n6sg1d1tjgllpkjrbah7m49",
-    "cnv2user2": "k59046t02nksk4co4s488o4wkwg8gg0",
-    "cnv2_forum_u": "379810",
-    "cnv2_forum_sid": "a0ab40e8bbdde63cb62c7f81a48b8bf0",
+    "cnv2sess": "m41vjpare5aj6vurrhhgk2jn4j",
+    "cnv2user2": "lumgtbv1akg48kwcg4kokkwsokcssow",
+    "cnv2_forum_u": "379920",
+    "cnv2_forum_sid": "bf8702857e6e8c11775968d6acf2a294",
 }
 
 driver = webdriver.Chrome()
@@ -35,6 +36,8 @@ keys_ignore = [
     "buy_now",
     "related_items",
     "score",
+    "gum",
+    "overprints",
     "print_run",
     "printing",
 ]
@@ -46,8 +49,9 @@ def get_colnect_url(year: int, page: int):
 
 
 def scrap_page(url: str):
+    time.sleep(2.5)
     driver.get(url)
-    time.sleep(0.4)
+    time.sleep(0.3)
 
     current_url = driver.current_url
     if url != current_url:
@@ -110,23 +114,29 @@ def main():
     print("Starting the scrapper...")
     df = pd.DataFrame()
 
-    for year in range(1840, 2025):
-        for ctr in itertools.count(start=1):
+    with open("init_state.json", "r") as file:
+        init_state = json.load(file)
+
+    for year in range(init_state["year"], 2025):
+        start = 1 if year > init_state["year"] else init_state["page"]
+        for ctr in itertools.count(start=start):
             try:
                 print(f"Scrapping {year}-{ctr}")
                 url = get_colnect_url(year, ctr)
                 items = scrap_page(url)
                 df = pd.concat([df, pd.DataFrame(items)], ignore_index=True)
 
-                time.sleep(0.5)
-
             except Exception as e:
                 print(e)
                 break
 
+    with open("init_state.json", "w") as file:
+        json.dump({"year": year, "page": ctr}, file)
+
     driver.quit()
 
-    df.to_csv("stanley_gibbons_colnect.csv", index=False)
+    df.to_csv("stanley_gibbons_colnect.csv", mode="a", header=False, index=False)
+
     print("Scrapper finished.")
 
 
