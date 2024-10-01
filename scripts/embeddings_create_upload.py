@@ -59,13 +59,16 @@ def process_batch(images, model, device):
 def main():
     # ? Configuration
     qdrant_url = "https://qdrant.fijit.club:443"
-    collection_name = "stamps"
-    model_name = "openai/clip-vit-base-patch32"
+    collection_name = "stamps2"
+    model_name = "openai/clip-vit-large-patch14"
+    vector_size = 768
+    # collection_name = "stamps"
+    # model_name = "openai/clip-vit-base-patch32"
+    # vector_size = 512
     csv_path = "./data/stanley_gibbons_colnect.csv"
     dataset_dir = "./data/images"
     batch_size = 32  # Reduced batch size due to varying image sizes
     num_workers = os.cpu_count()  # Adjust based on your CPU
-    vector_size = 512
 
     # ? Setup
     client = QdrantClient(qdrant_url)
