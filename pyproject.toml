@@ -29,9 +29,14 @@ asyncio = "^3.4.3"
 aiofiles = "^23.2.1"
 qdrant-client = "^1.11.3"
 gradio = "^4.44.1"
+django = "^5.1.2"
+djangorestframework = "^3.15.2"
+psycopg = {extras = ["binary", "pool"], version = "^3.2.3"}
 
 [tool.poetry.group.dev.dependencies]
 jupyter = "^1.1.1"
+black = "^24.10.0"
+flake8 = "^7.1.1"
 
 [tool.isort]
 profile = "black"
