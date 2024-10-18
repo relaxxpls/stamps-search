@@ -13,7 +13,14 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Initialize Qdrant client
 qdrant_client = QdrantClient("https://qdrant.fijit.club:443")
-collection_name = "stamps"
+
+# # Large
+# embedding_collection_name = "stamps2"
+# embedding_model_name = "openai/clip-vit-large-patch14"
+
+# Base
+embedding_collection_name = "stamps"
+embedding_model_name = "openai/clip-vit-base-patch32"
 
 
 @dataclass
@@ -96,12 +103,10 @@ def find_similar_stamps(
     image: Image.Image, num_matches: int = 5
 ) -> List[Dict[str, Any]]:
     # Load the CLIP model
-    model_name = "openai/clip-vit-base-patch32"
-
-    model = CLIPModel.from_pretrained(model_name)
+    model = CLIPModel.from_pretrained(embedding_model_name)
     model.to(device)
     processor = CLIPProcessor.from_pretrained(
-        model_name, clean_up_tokenization_spaces=True
+        embedding_model_name, clean_up_tokenization_spaces=True
     )
 
     inputs = processor(images=image, return_tensors="pt")
@@ -114,7 +119,7 @@ def find_similar_stamps(
 
     # Use Qdrant to find similar stamps
     results = qdrant_client.query_points(
-        collection_name, query=embedding, limit=num_matches
+        embedding_collection_name, query=embedding, limit=num_matches
     )
 
     similar_images = [{"idx": hit.id, "distance": hit.score} for hit in results.points]
