@@ -1,3 +1,6 @@
 from django.contrib import admin
+from stamps.models import Series, Country, Stamp
 
-# Register your models here.
+admin.site.register(Series)
+admin.site.register(Country)
+admin.site.register(Stamp)

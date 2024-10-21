@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from rest_framework.generics import ListAPIView
 
-# Create your views here.
+from stamps.models import Stamp
+from stamps.serializers import StampsSerializer
+
+
+class StampsListView(ListAPIView):
+    serializer_class = StampsSerializer
+    queryset = Stamp.objects.all()
