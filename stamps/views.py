@@ -1,8 +1,10 @@
+from dataclasses import asdict
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from PIL import Image
+from django.forms.models import model_to_dict
 
 from models.core import StampSearch
 from stamps.models import Stamp
@@ -30,17 +32,20 @@ class IdentifyImage(APIView):
                 for point in query.points
             ]
 
-            stamps = Stamp.objects.filter(colnect_id__in=colnect_ids)
-            stamp_dict = {stamp.colnect_id: stamp for stamp in stamps}
+            stamps = Stamp.objects.filter(id__in=colnect_ids)
+            stamp_dict = {stamp.id: stamp for stamp in stamps}
 
             res = []
             for detection, query in zip(detections, queries):
                 similar_stamps = []
                 for point in query.points:
-                    stamp = stamp_dict[int(point.payload["colnect_id"])].__dict__
+                    stamp = model_to_dict(stamp_dict[int(point.payload["colnect_id"])])
                     stamp["score"] = point.score
                     similar_stamps.append(stamp)
-                res.append({"detection": detection, "similar_stamps": similar_stamps})
+
+                res.append(
+                    {"detection": asdict(detection), "similar_stamps": similar_stamps}
+                )
 
             return Response(res, status=status.HTTP_200_OK)
 

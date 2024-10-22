@@ -127,13 +127,6 @@ def find_similar_stamps(
     return similar_images
 
 
-def resize_image(image: Image.Image, max_size: int = 200) -> Image.Image:
-    """Resize image while maintaining aspect ratio"""
-    ratio = max_size / max(image.size)
-    new_size = tuple([int(x * ratio) for x in image.size])
-    return image.resize(new_size, Image.Resampling.LANCZOS)
-
-
 def identify_stamps(image_np: np.ndarray) -> List[List[Image.Image]]:
     """
     Identify postage stamps in an image and visualize the results.

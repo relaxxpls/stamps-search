@@ -4,17 +4,29 @@ from django.db import models
 class Country(models.Model):
     name = models.CharField(max_length=127, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Series(models.Model):
     name = models.CharField(max_length=127, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Format(models.Model):
     name = models.CharField(max_length=31, unique=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Emission(models.Model):
     name = models.CharField(max_length=31, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Stamp(models.Model):
@@ -34,4 +46,4 @@ class Stamp(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return f"[{self.id}] {self.title}"
