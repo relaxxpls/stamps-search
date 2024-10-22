@@ -3,8 +3,7 @@ from typing import List
 import torch
 from PIL import Image
 from transformers import pipeline, CLIPProcessor, CLIPModel
-from qdrant_client import QdrantClient
-from tqdm import tqdm
+from qdrant_client import QdrantClient, models
 
 from models.models import DetectionResult, BoundingBox
 
@@ -21,10 +20,10 @@ class StampSearch:
 
         # Embedding model
         # Base
-        self.embedding_collection_name = "stamps-clip-base"
+        self.collection_name = "stamps-clip-base"
         self.embedding_model_name = "openai/clip-vit-base-patch32"
         # Large
-        # self.embedding_collection_name = "stamps-clip-large"
+        # self.collection = "stamps-clip-large"
         # self.embedding_model_name = "openai/clip-vit-large-patch14"
 
     def search(self, image: Image.Image):
@@ -35,13 +34,8 @@ class StampSearch:
         detections = self.__remove_overlapping_detections(
             all_detections, overlap_threshold=0.9
         )
-
-        queries = []
-        for detection in tqdm(detections):
-            box = detection.box
-            cropped_image = image.crop(box.xyxy)
-            query_res = self.__find_similar_stamps(cropped_image)
-            queries.append(query_res)
+        detected_images = [image.crop(detection.box.xyxy) for detection in detections]
+        queries = self.__find_similar_stamps(detected_images)
 
         return detections, queries
 
@@ -90,22 +84,25 @@ class StampSearch:
 
         return kept_detections
 
-    def __find_similar_stamps(self, image: Image.Image, num_matches=5):
+    def __find_similar_stamps(self, images: List[Image.Image], num_matches=5):
         # Load the CLIP model
         model = CLIPModel.from_pretrained(self.embedding_model_name)
         model.to(self.device)
 
         processor = CLIPProcessor.from_pretrained(self.embedding_model_name)
-        inputs = processor(images=image, return_tensors="pt").to(self.device)
+        inputs = processor(images=images, return_tensors="pt").to(self.device)
 
         with torch.no_grad():
             embeddings = model.get_image_features(**inputs)
 
-        embedding = embeddings.cpu().squeeze().numpy()
+        embeddings = embeddings.cpu().numpy()
 
-        # ? Use Qdrant to find similar stamps
-        results = self.qdrant_client.query_points(
-            self.embedding_collection_name, query=embedding, limit=num_matches
+        requests = [
+            models.QueryRequest(query=embedding, limit=num_matches, with_payload=True)
+            for embedding in embeddings
+        ]
+        queries = self.qdrant_client.query_batch_points(
+            self.collection_name, requests=requests
         )
 
-        return results
+        return queries

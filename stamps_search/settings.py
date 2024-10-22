@@ -6,9 +6,9 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = str(os.getenv("SECRET_KEY"))
-DEBUG = bool(os.getenv("DEBUG"))
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["43.204.231.138"]
 
 
 # Application definition
