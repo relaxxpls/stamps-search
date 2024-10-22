@@ -20,7 +20,7 @@ class Emission(models.Model):
 class Stamp(models.Model):
     id = models.IntegerField(primary_key=True)
     colnect_url = models.URLField(max_length=255, unique=True)
-    catalog_code_sg = models.CharField(max_length=31, unique=True)
+    catalog_code_sg = models.CharField(max_length=31)
     image_url = models.URLField(max_length=127)
     title = models.CharField()
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
