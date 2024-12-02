@@ -6,5 +6,7 @@ admin.site.site_title = "Stamps Search Admin"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("stamps/", include("stamps.urls")),
+    path("", include("stamps.urls")),
 ]
+
+urlpatterns = [path("stamps/", include(urlpatterns))]
